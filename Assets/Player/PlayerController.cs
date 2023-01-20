@@ -17,20 +17,26 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jump parameters")]
     [SerializeField] private KeyCode _JumpKey = KeyCode.Space;
-    [SerializeField] private bool _CanJump = false;
+    [SerializeField] private bool _CanJump = true;
     [SerializeField] private float _JumpForce = 9.81f;
     [SerializeField] private float _MaxJumpHold = 0.0f;
     [SerializeField] private float _BaseGravityForce = 9.81f;
     [SerializeField] private float _LowGravityForce = 3.81f;
 
     private float _CurrJumpHold = 0.0f;
-    private bool _CanHoldCurrentJump = true;
+    [SerializeField] private bool _CanHoldCurrentJump = true;
+    private bool _IsHoldingJump = false;
+    private bool _IsReleasingJump = false;
 
     [SerializeField] private int _MaxJumpCount = 2;
     private int _CurrJumpCount = 0;
 
 
     [SerializeField] private bool _AwaitJumpReset = false;
+
+    [SerializeField] private float _CoyoteMaxTime = 0.3f;
+    private float _CoyoteCurrTime = 0.0f;
+
 
 
     #endregion
@@ -45,6 +51,10 @@ public class PlayerController : MonoBehaviour
         
     }
 
+    void Update()
+    {
+        HandleJumpInput();
+    }
 
     void FixedUpdate()
     {
@@ -59,45 +69,86 @@ public class PlayerController : MonoBehaviour
         transform.Translate(new Vector2(dir, 0) * _MoveSpeed * Time.fixedDeltaTime);
     }
 
+    void HandleJumpInput()
+    {
+        if (Input.GetKeyDown(_JumpKey) && _CanJump)
+        {
+            _CurrJumpCount++;
+            if (_CurrJumpCount >= _MaxJumpCount)
+            {
+                _CanJump = false;
+            }
+        }
+
+        _IsHoldingJump = Input.GetKey(_JumpKey);
+        _IsReleasingJump = Input.GetKeyUp(_JumpKey);
+    }
+
     void HandleJump()
     {
         //Lock jump when touching ground but jump key still pressed
-        if (_AwaitJumpReset && !Input.GetKey(_JumpKey)) ResetJump();
+        if (_AwaitJumpReset && !_IsHoldingJump) ResetJump();
 
         //Reset "BJP" when releasing jump key
-        if (_CanJump && !_CanHoldCurrentJump && !Input.GetKey(_JumpKey))
+        if (_CanJump && !_CanHoldCurrentJump && !_IsHoldingJump)
+        {
             _CanHoldCurrentJump = true;
+            _CurrJumpHold = 0.0f;
+        }
 
-        if (Input.GetKey(_JumpKey) && _CanHoldCurrentJump)
+        //Handling "BJP"
+        if (_IsHoldingJump && _CanHoldCurrentJump)
         {
             _Rb2d.velocity = Vector2.up * _JumpForce;
+
             _CurrJumpHold += Time.deltaTime;
-            
             if (_CurrJumpHold >= _MaxJumpHold)
             {
-                _CurrJumpCount++;
                 _CanHoldCurrentJump = false;
                 _CurrJumpHold = 0.0f;
             }
             
         }
-
-        if (Input.GetKeyUp(_JumpKey) && _CanJump)
+        
+        
+        if (_IsReleasingJump && _CanJump)
         {
-            _CurrJumpCount++;
             _CanHoldCurrentJump = true;
             _CurrJumpHold = 0.0f;
         }
-
-        if (_Rb2d.velocity.y >= 0 && _CanJump)
+        else if (!_IsHoldingJump && !_CanJump)
         {
-            _Rb2d.velocity -= Vector2.up * _LowGravityForce * Time.fixedDeltaTime;
+            _CanHoldCurrentJump = false;
+        }
+
+        //Gravity force applied on jump based on "BJP"
+        if (_Rb2d.velocity.y >= 0)
+        {
+            if (!_IsHoldingJump || !_CanHoldCurrentJump)
+                _Rb2d.velocity -= Vector2.up * _LowGravityForce * Time.fixedDeltaTime;
+            else
+                _Rb2d.velocity -= Vector2.up * _BaseGravityForce * Time.fixedDeltaTime;
 
         }
-        else if (_Rb2d.velocity.y < 0 || !_CanJump)
+
+        else if (_Rb2d.velocity.y < 0)
         {
+            //Handling Coyot time: Allowing player to jump a short time after leaving plateform, avoiding to force jump precision
+            if (_CurrJumpCount == 0)
+            {
+
+                _CoyoteCurrTime += Time.deltaTime;
+                if (_CoyoteCurrTime >= _CoyoteMaxTime)
+                {
+                    _CanJump = false;
+                    _CanHoldCurrentJump = false;
+                }
+
+            }
+
             _Rb2d.velocity -= Vector2.up * _BaseGravityForce * Time.deltaTime;
         }
+        
     }
 
     void ResetJump()
@@ -107,6 +158,7 @@ public class PlayerController : MonoBehaviour
         _CurrJumpHold = 0.0f;
         _AwaitJumpReset = false;
         _CurrJumpCount = 0;
+        _CoyoteCurrTime = 0.0f;
     }
 
     void OnCollisionEnter2D(Collision2D col)
