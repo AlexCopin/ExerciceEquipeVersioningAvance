@@ -50,7 +50,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 0
+  m_GravityScale: 1
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -137,9 +137,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _MoveSpeed: 10
-  _IsJumping: 0
+  _JumpKey: 32
+  _CanJump: 1
   _JumpForce: 15
   _MaxJumpHold: 0.25
   _BaseGravityForce: 70
   _LowGravityForce: 50
+  _CanHoldCurrentJump: 1
+  _MaxJumpCount: 2
   _AwaitJumpReset: 0
+  _CoyoteMaxTime: 0.3
