@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 //N.B.: "BJP" stands for "Big Jump Press"; When you press jump key longer to jump higher, just like in 2D Mario games
 public class PlayerController : MonoBehaviour
@@ -11,6 +13,15 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D _Rb2d;
     private SpriteRenderer _Sr;
+
+
+
+
+    private int _CoinNbr = 0;
+
+    [Header("UI parameters")]
+    [SerializeField] private Slider _LifeSlider;
+    [SerializeField] private TextMeshProUGUI _CoinText;
 
     [Header("Move parameters")]
     [SerializeField] private float _MoveSpeed = 10f;
@@ -47,6 +58,7 @@ public class PlayerController : MonoBehaviour
 
 
 
+
     #endregion
 
     void Awake()
@@ -57,7 +69,9 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        
+        _LifeSlider.maxValue = _LifePoints;
+        _LifeSlider.value = _LifeSlider.maxValue;
+        _CoinText.text = "x " + _CoinNbr.ToString();
     }
 
     void Update()
@@ -121,7 +135,7 @@ public class PlayerController : MonoBehaviour
             
         }
         
-        
+        //Check when releasing jump and reset "BJP"
         if (_IsReleasingJump && _CanJump)
         {
             _CanHoldCurrentJump = true;
@@ -195,6 +209,7 @@ public class PlayerController : MonoBehaviour
     {
         if (_IsInvicible) return;
         _LifePoints--;
+        _LifeSlider.value = _LifePoints;
         if (_LifePoints <= 0) Debug.Log("GameOver"); //Link this to GM
         else
         {
@@ -202,5 +217,11 @@ public class PlayerController : MonoBehaviour
             _IsInvicible = true;
             _Sr.color = new Color32(255, 255, 255, _HitAlphaValue);
         }
+    }
+
+    public void OnGetCoin()
+    {
+        _CoinNbr++;
+        _CoinText.text = "x " + _CoinNbr.ToString();
     }
 }
