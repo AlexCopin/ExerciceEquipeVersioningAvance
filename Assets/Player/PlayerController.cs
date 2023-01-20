@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     #region Parameters
 
     private Rigidbody2D _Rb2d;
+    private SpriteRenderer _Sr;
 
     [Header("Move parameters")]
     [SerializeField] private float _MoveSpeed = 10f;
@@ -37,6 +38,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _CoyoteMaxTime = 0.3f;
     private float _CoyoteCurrTime = 0.0f;
 
+    [Header("Life Parameters")] 
+    [SerializeField] private int _LifePoints;
+    [SerializeField] private float _InvicibilityTime;
+    [SerializeField] [Range(0, 255)] private byte _HitAlphaValue;
+    private float _CurrInvicibilityTime;
+    private bool _IsInvicible = false;
+
 
 
     #endregion
@@ -44,6 +52,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         _Rb2d = GetComponent<Rigidbody2D>();
+        _Sr = GetComponent<SpriteRenderer>();
     }
 
     void Start()
@@ -53,7 +62,9 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        HandleLife();
         HandleJumpInput();
+        if (Input.GetKeyDown(KeyCode.A)) OnHit();
     }
 
     void FixedUpdate()
@@ -165,5 +176,31 @@ public class PlayerController : MonoBehaviour
     {
         if (!Input.GetKey(_JumpKey)) ResetJump();
         else _AwaitJumpReset = true;
+    }
+
+    void HandleLife()
+    {
+        if (_IsInvicible)
+        {
+            _CurrInvicibilityTime -= Time.deltaTime;
+            if (_CurrInvicibilityTime <= 0.0f)
+            {
+                _IsInvicible = false;
+                _Sr.color = new Color32(255, 255, 255, 255);
+            }
+        }
+    }
+
+    public void OnHit()
+    {
+        if (_IsInvicible) return;
+        _LifePoints--;
+        if (_LifePoints <= 0) Debug.Log("GameOver"); //Link this to GM
+        else
+        {
+            _CurrInvicibilityTime = _InvicibilityTime;
+            _IsInvicible = true;
+            _Sr.color = new Color32(255, 255, 255, _HitAlphaValue);
+        }
     }
 }
