@@ -136,6 +136,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31e262016ba2883458b37d5965080c5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _LifeSlider: {fileID: 0}
+  _CoinText: {fileID: 0}
   _MoveSpeed: 10
   _JumpKey: 32
   _CanJump: 1
@@ -147,3 +149,6 @@ MonoBehaviour:
   _MaxJumpCount: 2
   _AwaitJumpReset: 0
   _CoyoteMaxTime: 0.3
+  _LifePoints: 5
+  _InvicibilityTime: 1.5
+  _HitAlphaValue: 128
