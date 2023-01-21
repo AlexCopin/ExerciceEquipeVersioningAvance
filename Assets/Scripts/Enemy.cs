@@ -9,6 +9,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float xEpsilonDegree;
     [Space]
     [SerializeField] private float speed;
+    [SerializeField] private int life;
 
     private void Awake()
     {
@@ -24,6 +25,24 @@ public class Enemy : MonoBehaviour
         {
             direction *= -1f;
         }
+    }
+
+    public void TakeDamage(int _damages)
+    {
+        if (_damages <= 0)
+            return;
+
+        life -= _damages;
+
+        if (life <= 0)
+        {
+            Death();
+        }
+    }
+
+    private void Death()
+    {
+        Destroy(gameObject);
     }
 
     private void OnDrawGizmos()
